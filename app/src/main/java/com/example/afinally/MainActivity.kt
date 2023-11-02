@@ -171,7 +171,7 @@ fun SheetAddWindow(onDismiss:() -> Unit) {
 
         Button(onClick = {
             items_list.add("${user_input_year.value} ${user_input_month.value}")
-//            onDismiss()
+            onDismiss()
         }) {
             Text("Confirm")
         }

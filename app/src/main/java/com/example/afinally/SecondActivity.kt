@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -66,36 +67,67 @@ class SecondActivity : ComponentActivity() {
 
                 Divider()
 
-                OutlinedTextField(value = user_input.value, onValueChange = { user_input.value = it }, label = { Text("Enter expense")},keyboardActions = KeyboardActions(onDone = {
-                    val parts = user_input.value.split(",")
-                    if(parts.size==2) {
-                        val expenseDescription = parts[0].trim()
-                        val amount = parts[1].trim().toDoubleOrNull()
-                        if (expenseDescription.isNotBlank()&&amount!=null) {
-                            items_list.add(Pair(expenseDescription, amount))
-                            expense.value += amount
-                            balance.value = income.value - expense.value
-                        }
-                    }
-                }), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done))
-                VerticalList(items_list)
+                // composable function that shows a sheet when click a button
+                Button(onClick = { showExpenseAddWindow.value = true }) { Text("+Add Expense Item") }
+                if (showExpenseAddWindow.value) { ExpenseAddWindow(onDismiss = { showExpenseAddWindow.value = false }) }
+
+                Spacer(modifier= Modifier.width(16.dp))
+
+//                OutlinedTextField(value = user_input.value, onValueChange = { user_input.value = it }, label = { Text("Enter expense")},keyboardActions = KeyboardActions(onDone = {
+//                    val parts = user_input.value.split(",")
+//                    if(parts.size==2) {
+//                        val expenseDescription = parts[0].trim()
+//                        val amount = parts[1].trim().toDoubleOrNull()
+//                        if (expenseDescription.isNotBlank()&&amount!=null) {
+//                            items_list.add(Pair(expenseDescription, amount))
+//                            expense.value += amount
+//                            balance.value = income.value - expense.value
+//                        }
+//                    }
+//                }), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done))
+                VerticalList(item_list)
 
             }
         }
 
     }
 
-
-
-
-    var balance = mutableStateOf(0.0)
     var entered_income = mutableStateOf("")
-    var income = mutableStateOf(0.0)
-    var expense = mutableStateOf(0.0)
-    var items_list = mutableStateListOf<Pair<String,Double>>()
-    var user_input = mutableStateOf("Description , Amount")
-    var last_clicked = mutableStateOf(0)
-    var last_long_clicked = mutableStateOf(0)
+
+    var showExpenseAddWindow = mutableStateOf(false)
+}
+
+var item_list = mutableStateListOf<Pair<String,Double>>()
+var income = mutableStateOf(0.0)
+var expense = mutableStateOf(0.0)
+var balance = mutableStateOf(0.0)
+var user_input = mutableStateOf("Description , Amount")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExpenseAddWindow(onDismiss:() -> Unit) {
+
+    Column(modifier = Modifier.padding(50.dp)) {
+
+        OutlinedTextField(value = user_input.value, onValueChange = { user_input.value = it }, label = { Text("Enter expense")}
+
+              )
+
+        Button(onClick = {
+            val parts = user_input.value.split(",")
+            if(parts.size==2) {
+                val expenseDescription = parts[0].trim()
+                val amount = parts[1].trim().toDoubleOrNull()
+                if (expenseDescription.isNotBlank()&&amount!=null) {
+                    item_list.add(Pair(expenseDescription, amount))
+                    expense.value += amount
+                    balance.value = income.value - expense.value
+                }
+            }
+            onDismiss()
+        }) {
+            Text("Confirm")
+        }
+    }
 
 }
 
@@ -120,15 +152,15 @@ fun basicTextCard(title:String, subtext:String) {
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
-fun VerticalList(items_list: MutableList<Pair<String, Double>>) {
+fun VerticalList(item_list: MutableList<Pair<String, Double>>) {
     LazyColumn {
-        for (i in 0 until items_list.size) {
+        for (i in 0 until item_list.size) {
             item {
                 ListItem(
-                    headlineText = { Text("Expense description: ${items_list[i].first}") },
-                    supportingText = { Text(text = "Expense amount:${items_list[i].second} ") },
+                    headlineText = { Text("Expense description: ${item_list[i].first}") },
+                    supportingText = { Text(text = "Expense amount:${item_list[i].second} ") },
                    trailingContent = { Icon(imageVector = Icons.Filled.Delete ,contentDescription="delete", modifier = Modifier.clickable {
-                            items_list.remove(items_list[i])
+                            item_list.remove(item_list[i])
                    })}
                 )
             }
