@@ -1,31 +1,36 @@
 package com.example.afinally
 
+import android.content.ContentValues
 import android.content.Intent
+import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import java.util.Calendar
 
 
@@ -34,102 +39,122 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
 
+        setContent {
             Column {
+                Text(text = current_data.value)
+
+                Text("------------------------------------------------------------------")
                 Text("The second activity was started ${started.value} time(s)")
                 Text("This is the main activity")
-                Text("clicked item ${last_clicked.value}")
-                Text("long clicked item ${last_long_clicked.value}")
 
-                MainScreen()
-            }
+                // composable function that shows a sheet when click a button
+                Button(onClick = { showSheetAddWindow.value = true }) { Text("+Add New Expense Sheet") }
+                    if (showSheetAddWindow.value) { SheetAddWindow(onDismiss = { showSheetAddWindow.value = false }) }
 
-        }
-    }
+                Spacer(modifier= Modifier.width(16.dp))
 
+                LazyColumn{
+                    for (i in 0 until items_list.size) {
+                        item {
+                            Row(modifier=Modifier.padding(20.dp)){
+                                Text ( "sheet item $i:${items_list[i]}" )
+                                Spacer(modifier= Modifier.width(8.dp))
+                                Icon(imageVector = Icons.Filled.Edit, contentDescription ="Edit",Modifier.clickable {
+                                    startActivity(createIntentSecondActivity()) } )
+                                Spacer(modifier= Modifier.width(8.dp))
+                                Icon(imageVector = Icons.Filled.Delete, contentDescription ="Delete", Modifier.clickable {
+                                    items_list.remove(items_list[i])})
 
-
-
-
-
-}
-
-var started = mutableStateOf(0)
-var items_list = mutableStateListOf<String>()
-var last_clicked = mutableStateOf(0)
-var last_long_clicked = mutableStateOf(0)
-
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun MainScreen() {
-
-
-    var showSheet by remember { mutableStateOf(false) }
-
-    Button(onClick = { showSheet = true }) {
-        Text("+Add New Expense Sheet")
-    }
-
-    if (showSheet) {
-        SheetAddWindow(onDismiss = { showSheet = false })
-    }
-    VerticalList(items_list, { last_clicked.value = it }, { last_long_clicked.value = it })
-
-}
-
-
-
-
-
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
-@Composable
-fun VerticalList(items_list:MutableList<String>,onStateChanged: (Int) -> Unit, onLongClick: (Int) -> Unit){
-
-
-
-    LazyColumn(modifier = Modifier
-        .fillMaxSize()
-        .wrapContentSize(Alignment.Center)) {
-        for (i in 0 until items_list.size) {
-            item {
-                ListItem(
-
-                    headlineText = { Text("created expense sheet item: $i") },
-                    supportingText = { Text(text = items_list[i]) },
-                    modifier = Modifier.combinedClickable(
-                        onClick = {
-                            onStateChanged(i)
-                             startActivity(createIntentSecondActivity())
-                        },
-                        onLongClick = {
-                            onLongClick(i)
+                            }
                         }
-                    )
-                )
+                    }
+                }
             }
-        }
+         }
+        tdb = TestDBOpenHelper(this, "test.db", null, 1)
+        sdb = tdb.writableDatabase
+
+      }
+
+
+    var showSheetAddWindow = mutableStateOf(false)
+    var started = mutableStateOf(0)
+
+    private fun createIntentSecondActivity(): Intent {
+        var intent  = Intent( this,SecondActivity::class.java)
+        intent. putExtra( "started", started.value)
+        started.value++
+        return intent
     }
 
+
+    private fun addData() {
+        val row1: ContentValues = ContentValues().apply {
+            put("Year", "2023")
+            put("Month", "10")
+            put("Description", "rent")
+            put("Expense", "400")
+        }
+
+
+        sdb.insert("test", null, row1)
+
+    }
+
+    private fun updateData() {
+        val row: ContentValues = ContentValues().apply {
+            put("Description", "rent")
+        }
+
+        var table = "test"
+        var where = "Description= ?"
+        var where_args: Array<String> = arrayOf("food")
+        sdb.update(table, row, where, where_args)
+
+    }
+
+    private fun retrieveData(): String {
+
+        val table_name = "test"
+        val columns: Array<String> = arrayOf("ID", "Year", "Month", "Description","Expense")
+        val where: String? = null
+        val where_args: Array<String>? = null
+        val group_by: String? = null
+        val having: String? = null
+        val order_by: String? = null
+
+        var c: Cursor =
+            sdb.query(table_name, columns, where, where_args, group_by, having, order_by)
+
+        var sb: StringBuilder = StringBuilder()
+        c.moveToFirst()
+        for (i in 0 until c.count) {
+            sb.append(c.getInt(0).toString())
+            sb.append("")
+            sb.append(c.getString(1).toString())
+            sb.append("")
+            sb.append(c.getString(2).toString())
+            sb.append("")
+            sb.append(c.getString(3).toString())
+            sb.append("\n")
+            c.moveToNext()
+        }
+
+        return sb.toString()
+    }
+
+    private var current_data = mutableStateOf("NO data in database")
+    private lateinit var tdb: TestDBOpenHelper
+    private lateinit var sdb: SQLiteDatabase
+
+
+
 }
 
 
 
-private fun createIntentSecondActivity(): Intent {
-
-    var intent  = Intent( this,SecondActivity::class.java)
-    intent. putExtra( "started", started.value)
-
-    started.value++
-    return intent
-}
-
-
-
-
+var items_list = mutableStateListOf<String>()
 var user_input_month = mutableStateOf(Calendar.getInstance().get(Calendar.MONTH)+1)
 var user_input_year = mutableStateOf(Calendar.getInstance().get(Calendar.YEAR))
 
@@ -146,11 +171,10 @@ fun SheetAddWindow(onDismiss:() -> Unit) {
 
         Button(onClick = {
             items_list.add("${user_input_year.value} ${user_input_month.value}")
-            onDismiss()
+//            onDismiss()
         }) {
             Text("Confirm")
         }
-
     }
 
 }

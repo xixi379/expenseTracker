@@ -1,11 +1,10 @@
 package com.example.afinally
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -13,10 +12,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -37,7 +39,7 @@ class SecondActivity : ComponentActivity() {
             Column {
                 Text("This is the second activity")
                 Button(onClick = {finish() }) {
-                    Text("Finish activity")
+                    Text("Finish activity, back to main page")
                 }
                 Text("Total Balance",fontSize=30.sp)
                 Text("€ ${balance.value}",fontSize=30.sp)
@@ -76,23 +78,13 @@ class SecondActivity : ComponentActivity() {
                         }
                     }
                 }), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done))
-                VerticalList(items_list,{last_clicked.value= it },{last_long_clicked.value = it})
+                VerticalList(items_list)
 
-                Button(onClick = { finishActivity() }) {
-                    Text("Finish Activity")
-
-                }
             }
         }
 
     }
-    fun finishActivity() {
-        var return_intent = Intent(Intent.ACTION_VIEW)
-        return_intent.putExtra("input", balance.value.toString())
-        println("entered text was : ${balance.value}")
-        setResult(RESULT_OK, return_intent)
-        finish()
-    }
+
 
 
 
@@ -128,21 +120,16 @@ fun basicTextCard(title:String, subtext:String) {
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
-fun VerticalList(items_list: MutableList<Pair<String, Double>>, onStateChanged: (Int) -> Unit, onLongClick: (Int) -> Unit) {
+fun VerticalList(items_list: MutableList<Pair<String, Double>>) {
     LazyColumn {
         for (i in 0 until items_list.size) {
             item {
                 ListItem(
                     headlineText = { Text("Expense description: ${items_list[i].first}") },
                     supportingText = { Text(text = "Expense amount:${items_list[i].second} ") },
-                    modifier = Modifier.combinedClickable(
-                        onClick = {
-                            onStateChanged(i)
-                        },
-                        onLongClick = {
-                            onLongClick(i)
-                        }
-                    )
+                   trailingContent = { Icon(imageVector = Icons.Filled.Delete ,contentDescription="delete", modifier = Modifier.clickable {
+                            items_list.remove(items_list[i])
+                   })}
                 )
             }
         }
