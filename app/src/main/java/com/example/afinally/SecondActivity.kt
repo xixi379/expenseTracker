@@ -80,43 +80,44 @@ class SecondActivity : ComponentActivity() {
                     Text("+Add Expense Item")
                 }
 
+                //use column composable to show the expense item adding window
                 if (showExpenseAddWindow.value) {
                     Column(
                         modifier = Modifier.padding(30.dp)
                     ) {
                         OutlinedTextField(
-                            value = user_input.value,
-                            onValueChange = { user_input.value = it },
-                            label = { Text("Enter expense") }
+                            value = user_input_description.value,
+                            onValueChange = { user_input_description.value = it },
+                            label = { Text("Enter expense description") }
                         )
-
+                        OutlinedTextField(
+                            value = user_input_amount.value,
+                            onValueChange = { user_input_amount.value = it },
+                            label = { Text("Enter expense amount") }
+                        )
                         Button(
                             onClick = {
-                                val wholeInput = user_input.value.split(",")
-                                if (wholeInput.size == 2) {
-                                     val expenseDescription= wholeInput[0].trim()
-                                     val amount = wholeInput[1].trim().toDoubleOrNull()
 
-                                    if (expenseDescription.isNotBlank() && amount != null) {
-                                        item_list.add(Pair(expenseDescription, amount))
-                                        expense.value += amount
+
+                                    if (user_input_description.value.isNotBlank()&& user_input_amount.value.toDouble()!=null) {
+
+                                        item_list.add(Pair(user_input_description.value, user_input_amount.value.toDouble()))
+                                        expense.value += user_input_amount.value.toDouble()
                                         balance.value = income.value - expense.value
-                                        //add expense item to databse
-//                                        addData(expenseDescription,amount)
+
                                     }
 
-                                }
-
-                                //for close the adding window and also folding the keyboard
+                               //for close the adding window and also folding the keyboard
                                 showExpenseAddWindow.value = false
-
-
                             }
-                        ) {
+
+                    ){
                             Text("Confirm")
                         }
+
                     }
                 }
+
                Spacer(modifier= Modifier.width(16.dp))
 
                 //lazylist for displaying the expense item
@@ -133,12 +134,6 @@ class SecondActivity : ComponentActivity() {
     var monthTime: MutableState<String> = mutableStateOf("")
     var entered_income = mutableStateOf("")
     var showExpenseAddWindow = mutableStateOf(false)
-
-
-
-
-
-
 
    fun addData(expenseDescription: String, amount: Double) {
         val row: ContentValues = ContentValues().apply {
@@ -161,15 +156,8 @@ var item_list = mutableStateListOf<Pair<String,Double>>()
 var income = mutableStateOf(0.0)
 var expense = mutableStateOf(0.0)
 var balance = mutableStateOf(0.0)
-var user_input = mutableStateOf("Description , Amount")
-
-
-
-
-
-
-
-
+var user_input_description = mutableStateOf("")
+var user_input_amount = mutableStateOf("")
 
 @Composable
 fun BasicTextCard(title:String, subtext:String) {
