@@ -42,12 +42,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Column {
-                Text(text = current_data.value)
 
-                Text("------------------------------------------------------------------")
+
                 Text("The second activity was started ${started.value} time(s)")
                 Text("This is the main activity")
-
+                Text("------------------------------------------------------------------")
                 // composable function that shows a sheet when click a button
                 Button(onClick = { showSheetAddWindow.value = true }) { Text("+Add New Expense Sheet") }
                     if (showSheetAddWindow.value) { SheetAddWindow(onDismiss = { showSheetAddWindow.value = false }) }
@@ -83,24 +82,14 @@ class MainActivity : ComponentActivity() {
 
     private fun createIntentSecondActivity(): Intent {
         var intent  = Intent( this,SecondActivity::class.java)
-        intent. putExtra( "started", started.value)
+        intent. putExtra( "transferYearToSecond","${user_input_year.value} " )
+        intent. putExtra( "transferMonthToSecond"," ${user_input_month.value}" )
         started.value++
         return intent
     }
 
 
-    private fun addData() {
-        val row1: ContentValues = ContentValues().apply {
-            put("Year", "2023")
-            put("Month", "10")
-            put("Description", "rent")
-            put("Expense", "400")
-        }
 
-
-        sdb.insert("test", null, row1)
-
-    }
 
     private fun updateData() {
         val row: ContentValues = ContentValues().apply {
@@ -144,7 +133,7 @@ class MainActivity : ComponentActivity() {
         return sb.toString()
     }
 
-    private var current_data = mutableStateOf("NO data in database")
+
     private lateinit var tdb: TestDBOpenHelper
     private lateinit var sdb: SQLiteDatabase
 
