@@ -41,9 +41,9 @@ class SecondActivity : ComponentActivity() {
             Column {
                 Text("This is the second activity")
                 //show expense_total list with corresponding year and month
-                yearTime.value = intent.getStringExtra("transferYearToSecond").toString()
-                monthTime.value=intent.getStringExtra("transferMonthToSecond").toString()
-                Text(text="Year: ${yearTime.value}   Month:${monthTime.value}",fontSize=20.sp)
+                year_Time.value = intent.getStringExtra("transferYearToSecond").toString()
+                month_Time.value=intent.getStringExtra("transferMonthToSecond").toString()
+                Text(text="Year: ${year_Time.value}   Month:${month_Time.value}",fontSize=20.sp)
 
                 Button(onClick = {finish() }) {
                     Text("back to main page")
@@ -84,7 +84,7 @@ class SecondActivity : ComponentActivity() {
                     Text("+Add Expense Item")
                 }
 
-                //use column composable to show the expense_total item adding window
+                //use column composable to show the expense item adding window
                 if (showExpenseAddWindow.value) {
                     Column(
                         modifier = Modifier.padding(30.dp)
@@ -109,6 +109,7 @@ class SecondActivity : ComponentActivity() {
                                         item_list.add(Pair(user_input_description.value, user_input_amount.value.toDouble()))
                                         expense_total.value += user_input_amount.value.toDouble()
                                         balance.value = income.value - expense_total.value
+                                       addData(user_input_description.value,user_input_amount.value.toDouble())
 
                                     }
 
@@ -129,21 +130,21 @@ class SecondActivity : ComponentActivity() {
                 VerticalList(item_list)
             }
         }
-        //get a writable connection to the databse
+        //get a writable connection to the database
         tdb = TestDBOpenHelper(this, "test", null, 1)
         sdb = tdb.writableDatabase
     }
 
 
-    var yearTime: MutableState<String> = mutableStateOf("")
-    var monthTime: MutableState<String> = mutableStateOf("")
+    var year_Time: MutableState<String> = mutableStateOf("")
+    var month_Time: MutableState<String> = mutableStateOf("")
     var entered_income = mutableStateOf("")
     var showExpenseAddWindow = mutableStateOf(false)
 
    fun addData(expenseDescription: String, amount: Double) {
         val row: ContentValues = ContentValues().apply {
-            put("Year", yearTime.value.toInt())
-            put("Month", monthTime.value.toInt())
+            put("Year", year_Time.value.toInt())
+            put("Month", month_Time.value.toInt())
             put("Description", expenseDescription)
             put("Expense", amount)
         }
