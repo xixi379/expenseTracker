@@ -126,8 +126,27 @@ class SecondActivity : ComponentActivity() {
 
                Spacer(modifier= Modifier.width(16.dp))
 
-                //lazylist for displaying the expense_total item
-                VerticalList(item_list)
+                //lazylist for displaying the expense item
+                LazyColumn {
+                    for (i in 0 until item_list.size) {
+                        item {
+                            ListItem(
+                                headlineText = { Text("Expense description: ${item_list[i].first}") },
+                                supportingText = { Text(text = "Expense amount:${item_list[i].second} ") },
+                                trailingContent = { Icon(imageVector = Icons.Filled.Delete ,contentDescription="delete", modifier = Modifier.clickable {
+                                    expense_total.value-=item_list[i].second
+                                    balance.value = income.value - expense_total.value
+
+
+
+                                    item_list.remove(item_list[i])
+
+
+                                })}
+                            )
+                        }
+                    }
+                }
             }
         }
         //get a writable connection to the database
@@ -153,6 +172,14 @@ class SecondActivity : ComponentActivity() {
 
     }
 
+
+        fun deleteData(ID: Int){
+       sdb = tdb.readableDatabase
+       sdb.delete("test", "ID = ?", arrayOf(ID.toString()))
+        sdb.close()
+    }
+
+
     private lateinit var tdb: TestDBOpenHelper
     private lateinit var sdb: SQLiteDatabase
 
@@ -176,29 +203,4 @@ fun BasicTextCard(title:String, subtext:String) {
 }
 
 
-
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
-@Composable
-//try to use listitem here ,different from what i use in lazycolumn in mainActivity
-fun VerticalList(item_list: MutableList<Pair<String, Double>>) {
-    LazyColumn {
-        for (i in 0 until item_list.size) {
-            item {
-                ListItem(
-                    headlineText = { Text("Expense description: ${item_list[i].first}") },
-                    supportingText = { Text(text = "Expense amount:${item_list[i].second} ") },
-                   trailingContent = { Icon(imageVector = Icons.Filled.Delete ,contentDescription="delete", modifier = Modifier.clickable {
-                       expense_total.value-=item_list[i].second
-                       balance.value = income.value - expense_total.value
-
-                       item_list.remove(item_list[i])
-
-
-                   })}
-                )
-            }
-        }
-    }
-}
 
