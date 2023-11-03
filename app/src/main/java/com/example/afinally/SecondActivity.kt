@@ -3,6 +3,7 @@ package com.example.afinally
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -31,12 +32,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.sql.SQLException
 
 
 class SecondActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        //get a writable connection to the database
+        tdb = TestDBOpenHelper(this, "test", null, 1)
+        sdb = tdb.writableDatabase
+
+
+
+//        if (sdb != null) {
+//            // Database opened successfully, you can now use it.
+//            Log.i("successful","--------------------------------------------------")
+//        } else {
+//            Log.i("fail","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+//        }
+
         super.onCreate(savedInstanceState)
+
         setContent {
             Column {
                 Text("This is the second activity")
@@ -104,12 +121,13 @@ class SecondActivity : ComponentActivity() {
                             onClick = {
 
 
-                                    if (user_input_description.value.isNotBlank()&& user_input_amount.value.toDouble()!=null) {
+                                    if (user_input_description.value.isNotBlank()) {
 
+//                                        addData(user_input_description.value,user_input_amount.value.toDouble())
                                         item_list.add(Pair(user_input_description.value, user_input_amount.value.toDouble()))
                                         expense_total.value += user_input_amount.value.toDouble()
                                         balance.value = income.value - expense_total.value
-                                       addData(user_input_description.value,user_input_amount.value.toDouble())
+
 
                                     }
 
@@ -118,7 +136,7 @@ class SecondActivity : ComponentActivity() {
                             }
 
                     ){
-                            Text("Confirm")
+                            Text("Submit")
                         }
 
                     }
@@ -137,7 +155,7 @@ class SecondActivity : ComponentActivity() {
                                     expense_total.value-=item_list[i].second
                                     balance.value = income.value - expense_total.value
 
-
+//                                    deleteData(user_input_description.value,user_input_amount.value.toDouble())
 
                                     item_list.remove(item_list[i])
 
@@ -149,9 +167,7 @@ class SecondActivity : ComponentActivity() {
                 }
             }
         }
-        //get a writable connection to the database
-        tdb = TestDBOpenHelper(this, "test", null, 1)
-        sdb = tdb.writableDatabase
+
     }
 
 
@@ -160,29 +176,29 @@ class SecondActivity : ComponentActivity() {
     var entered_income = mutableStateOf("")
     var showExpenseAddWindow = mutableStateOf(false)
 
-   fun addData(expenseDescription: String, amount: Double) {
-        val row: ContentValues = ContentValues().apply {
+   private fun addData(expenseDescription: String, amount: Double) {
+        val row1: ContentValues = ContentValues().apply {
             put("Year", year_Time.value.toInt())
             put("Month", month_Time.value.toInt())
             put("Description", expenseDescription)
             put("Expense", amount)
         }
 
-       sdb.insert("test", null, row)
+       sdb.insert("expenseDetail", null, row1)
 
     }
 
 
-        fun deleteData(ID: Int){
-       sdb = tdb.readableDatabase
-       sdb.delete("test", "ID = ?", arrayOf(ID.toString()))
-        sdb.close()
+    private fun deleteData(expenseDescription: String, amount: Double) {
+        val whereClause = "Description = ? AND Expense = ?"
+        val whereArgs = arrayOf(expenseDescription, amount.toString())
+
+        sdb.delete("expenseDetail", whereClause, whereArgs)
     }
 
 
     private lateinit var tdb: TestDBOpenHelper
     private lateinit var sdb: SQLiteDatabase
-
 }
 
 var item_list = mutableStateListOf<Pair<String,Double>>()

@@ -16,14 +16,16 @@ class TestDBOpenHelper(context: Context, name:String, factory: SQLiteDatabase.Cu
         db?.execSQL(CREATE_TABLE)
     }
 
-    private val CREATE_TABLE: String = "create table test(" +
+    private val CREATE_TABLE: String = "create table expenseDetail(" +
             "ID integer primary key autoincrement," +
             "Year integer," +
             "Month integer," +
             "Description string," +
             "Expense double"+
             ")"
-    private val DROP_TABLE: String = "drop table test"
+    private val DROP_TABLE: String = "drop table expenseDetail"
+
+
 
 }
 
