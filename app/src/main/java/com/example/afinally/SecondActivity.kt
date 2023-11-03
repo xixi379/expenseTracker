@@ -41,33 +41,27 @@ class SecondActivity : ComponentActivity() {
                 //show expense list with corresponding year and month
                 yearTime.value = intent.getStringExtra("transferYearToSecond").toString()
                 monthTime.value=intent.getStringExtra("transferMonthToSecond").toString()
-
                 Text(text="Year: ${yearTime.value}   Month:${monthTime.value}",fontSize=20.sp)
 
                 Button(onClick = {finish() }) {
                     Text("back to main page")
                 }
 
-
-                Text("Total Balance",fontSize=30.sp)
-                Text("€ ${balance.value}",fontSize=30.sp)
+                Text("Total Balance : € ${balance.value}",fontSize=30.sp)
 
                 Divider()
 
                 OutlinedTextField(value = entered_income.value, onValueChange = {
                     //entered :string
                     val convertedValue = it.toDoubleOrNull()
-
                     if(convertedValue!=null){
                         income.value = convertedValue
                     }
-
                     entered_income.value=it
 
                     balance.value = income.value - expense.value},
 
                     label = { Text("enter income")} )
-
 
                 Spacer(modifier = Modifier.width(50.dp))
 
@@ -78,41 +72,94 @@ class SecondActivity : ComponentActivity() {
                 Divider()
 
                 // composable function that shows a window when click a button
-                Button(onClick = { showExpenseAddWindow.value = true }) { Text("+Add Expense Item") }
-                if (showExpenseAddWindow.value) { ExpenseAddWindow(onDismiss = { showExpenseAddWindow.value = false }) }
+                Button(
+                    onClick = {
+                        showExpenseAddWindow.value = true
+                    }
+                ) {
+                    Text("+Add Expense Item")
+                }
+
+                if (showExpenseAddWindow.value) {
+                    Column(
+                        modifier = Modifier.padding(30.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = user_input.value,
+                            onValueChange = { user_input.value = it },
+                            label = { Text("Enter expense") }
+                        )
+
+                        Button(
+                            onClick = {
+                                val wholeInput = user_input.value.split(",")
+                                if (wholeInput.size == 2) {
+                                     val expenseDescription= wholeInput[0].trim()
+                                     val amount = wholeInput[1].trim().toDoubleOrNull()
+
+                                    if (expenseDescription.isNotBlank() && amount != null) {
+                                        item_list.add(Pair(expenseDescription, amount))
+                                        expense.value += amount
+                                        balance.value = income.value - expense.value
+                                        //add expense item to databse
+//                                        addData(expenseDescription,amount)
+                                    }
+
+                                }
+
+                                //for close the adding window and also folding the keyboard
+                                showExpenseAddWindow.value = false
+
+
+                            }
+                        ) {
+                            Text("Confirm")
+                        }
+                    }
+                }
+
+
 
                 Spacer(modifier= Modifier.width(16.dp))
 
                 //lazylist for displaying the expense item
                 VerticalList(item_list)
 
+
+
+
             }
+            //get a writable connection to the databse
+            tdb = TestDBOpenHelper(this, "test", null, 1)
+            sdb = tdb.writableDatabase
         }
-        tdb = TestDBOpenHelper(this, "test.db", null, 1)
-        sdb = tdb.writableDatabase
     }
+
+
     var yearTime: MutableState<String> = mutableStateOf("")
     var monthTime: MutableState<String> = mutableStateOf("")
     var entered_income = mutableStateOf("")
-
     var showExpenseAddWindow = mutableStateOf(false)
 
-    private var current_data = mutableStateOf("NO data in database")
-    private lateinit var tdb: TestDBOpenHelper
-    private lateinit var sdb: SQLiteDatabase
 
-//    private fun addData() {
-//        val row1: ContentValues = ContentValues().apply {
-//            put("Year", "2023")
-//            put("Month", "10")
-//            put("Description", item_list[i].first)
-//            put("Expense", item_list[i].second)
-//        }
-//
-//
-//        sdb.insert("test", null, row1)
-//
-//    }
+
+
+
+
+
+   fun addData(expenseDescription: String, amount: Double) {
+        val row: ContentValues = ContentValues().apply {
+            put("Year", yearTime.value.toInt())
+            put("Month", monthTime.value.toInt())
+            put("Description", expenseDescription)
+            put("Expense", amount)
+        }
+
+       sdb.insert("test", null, row)
+
+    }
+
+
 }
 
 var item_list = mutableStateListOf<Pair<String,Double>>()
@@ -122,36 +169,10 @@ var balance = mutableStateOf(0.0)
 var user_input = mutableStateOf("Description , Amount")
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ExpenseAddWindow(onDismiss:() -> Unit) {
+private var current_data = mutableStateOf("NO data in database")
+private lateinit var tdb: TestDBOpenHelper
+private lateinit var sdb: SQLiteDatabase
 
-    Column(modifier = Modifier.padding(30.dp)) {
-
-        OutlinedTextField(value = user_input.value, onValueChange = { user_input.value = it },
-            label = { Text("Enter expense")}
-        )
-
-        Button(onClick = {
-
-            val wholeInput = user_input.value.split(",")
-            if(wholeInput.size==2) {
-                val expenseDescription = wholeInput[0].trim()
-                val amount = wholeInput[1].trim().toDoubleOrNull()
-                if (expenseDescription.isNotBlank()&&amount!=null) {
-                    item_list.add(Pair(expenseDescription, amount))
-                    expense.value += amount
-                    balance.value = income.value - expense.value
-                }
-            }
-            //for close the adding window and also folding the keyboard
-            onDismiss()
-        }) {
-            Text("Confirm")
-        }
-    }
-
-}
 
 
 

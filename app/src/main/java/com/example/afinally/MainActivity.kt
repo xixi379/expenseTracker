@@ -1,15 +1,11 @@
 package com.example.afinally
 
-import android.content.ContentValues
 import android.content.Intent
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -84,7 +80,7 @@ class MainActivity : ComponentActivity() {
         started.value++
         return intent
     }
-    
+
 
 }
 
