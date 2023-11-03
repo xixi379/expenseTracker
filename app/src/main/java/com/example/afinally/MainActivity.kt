@@ -35,18 +35,17 @@ import java.util.Calendar
 
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             Column {
-
-
                 Text("The second activity was started ${started.value} time(s)")
                 Text("This is the main activity")
                 Text("------------------------------------------------------------------")
+
                 // composable function that shows a sheet when click a button
                 Button(onClick = { showSheetAddWindow.value = true }) { Text("+Add New Expense Sheet") }
                     if (showSheetAddWindow.value) { SheetAddWindow(onDismiss = { showSheetAddWindow.value = false }) }
@@ -71,8 +70,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
          }
-        tdb = TestDBOpenHelper(this, "test.db", null, 1)
-        sdb = tdb.writableDatabase
 
       }
 
@@ -87,57 +84,7 @@ class MainActivity : ComponentActivity() {
         started.value++
         return intent
     }
-
-
-
-
-    private fun updateData() {
-        val row: ContentValues = ContentValues().apply {
-            put("Description", "rent")
-        }
-
-        var table = "test"
-        var where = "Description= ?"
-        var where_args: Array<String> = arrayOf("food")
-        sdb.update(table, row, where, where_args)
-
-    }
-
-    private fun retrieveData(): String {
-
-        val table_name = "test"
-        val columns: Array<String> = arrayOf("ID", "Year", "Month", "Description","Expense")
-        val where: String? = null
-        val where_args: Array<String>? = null
-        val group_by: String? = null
-        val having: String? = null
-        val order_by: String? = null
-
-        var c: Cursor =
-            sdb.query(table_name, columns, where, where_args, group_by, having, order_by)
-
-        var sb: StringBuilder = StringBuilder()
-        c.moveToFirst()
-        for (i in 0 until c.count) {
-            sb.append(c.getInt(0).toString())
-            sb.append("")
-            sb.append(c.getString(1).toString())
-            sb.append("")
-            sb.append(c.getString(2).toString())
-            sb.append("")
-            sb.append(c.getString(3).toString())
-            sb.append("\n")
-            c.moveToNext()
-        }
-
-        return sb.toString()
-    }
-
-
-    private lateinit var tdb: TestDBOpenHelper
-    private lateinit var sdb: SQLiteDatabase
-
-
+    
 
 }
 
