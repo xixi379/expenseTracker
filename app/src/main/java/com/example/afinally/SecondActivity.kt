@@ -173,12 +173,10 @@ var user_input = mutableStateOf("Description , Amount")
 
 @Composable
 fun BasicTextCard(title:String, subtext:String) {
-    val padding = Modifier.padding(5.dp)
-
-    Card(modifier = padding) {
+    Card(modifier = Modifier.padding(10.dp)) {
         Column {
-            Text(text = title, modifier = padding, fontSize =20.sp)
-            Text(text = subtext, modifier = padding)
+            Text(text = title, modifier = Modifier.padding(5.dp), fontSize =20.sp)
+            Text(text = subtext, modifier = Modifier.padding(5.dp))
         }
     }
 }

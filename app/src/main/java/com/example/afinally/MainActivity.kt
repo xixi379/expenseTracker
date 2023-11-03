@@ -62,8 +62,8 @@ class MainActivity : ComponentActivity() {
                                     contentDescription = "Edit",
                                     Modifier.clickable {
                                         val splitValues = items_list[i].split(" ")
-                                        val yearTime = splitValues[0]
-                                        val monthTime = splitValues[1]
+                                        val yearTime = splitValues[0].trim()
+                                        val monthTime = splitValues[1].trim()
                                         startActivity(createIntentSecondActivity(yearTime,monthTime))
                                     })
                                 Spacer(modifier = Modifier.width(8.dp))
