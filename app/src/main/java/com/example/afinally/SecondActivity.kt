@@ -117,22 +117,15 @@ class SecondActivity : ComponentActivity() {
                         }
                     }
                 }
-
-
-
-                Spacer(modifier= Modifier.width(16.dp))
+               Spacer(modifier= Modifier.width(16.dp))
 
                 //lazylist for displaying the expense item
                 VerticalList(item_list)
-
-
-
-
             }
-            //get a writable connection to the databse
-            tdb = TestDBOpenHelper(this, "test", null, 1)
-            sdb = tdb.writableDatabase
         }
+        //get a writable connection to the databse
+        tdb = TestDBOpenHelper(this, "test", null, 1)
+        sdb = tdb.writableDatabase
     }
 
 
@@ -159,6 +152,8 @@ class SecondActivity : ComponentActivity() {
 
     }
 
+    private lateinit var tdb: TestDBOpenHelper
+    private lateinit var sdb: SQLiteDatabase
 
 }
 
@@ -169,9 +164,7 @@ var balance = mutableStateOf(0.0)
 var user_input = mutableStateOf("Description , Amount")
 
 
-private var current_data = mutableStateOf("NO data in database")
-private lateinit var tdb: TestDBOpenHelper
-private lateinit var sdb: SQLiteDatabase
+
 
 
 

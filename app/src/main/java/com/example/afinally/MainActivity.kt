@@ -22,7 +22,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -43,49 +42,60 @@ class MainActivity : ComponentActivity() {
                 Text("------------------------------------------------------------------")
 
                 // composable function that shows a sheet when click a button
-                Button(onClick = { showSheetAddWindow.value = true }) { Text("+Add New Expense Sheet") }
-                    if (showSheetAddWindow.value) { SheetAddWindow(onDismiss = { showSheetAddWindow.value = false }) }
+                Button(onClick = {
+                    showSheetAddWindow.value = true
+                }) { Text("+Add New Expense Sheet") }
+                if (showSheetAddWindow.value) {
+                    SheetAddWindow(onDismiss = { showSheetAddWindow.value = false })
+                }
 
-                Spacer(modifier= Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-                LazyColumn{
+                LazyColumn {
                     for (i in 0 until items_list.size) {
                         item {
-                            Row(modifier=Modifier.padding(20.dp)){
-                                Text ( "sheet item $i:${items_list[i]}" )
-                                Spacer(modifier= Modifier.width(8.dp))
-                                Icon(imageVector = Icons.Filled.Edit, contentDescription ="Edit",Modifier.clickable {
-                                    startActivity(createIntentSecondActivity()) } )
-                                Spacer(modifier= Modifier.width(8.dp))
-                                Icon(imageVector = Icons.Filled.Delete, contentDescription ="Delete", Modifier.clickable {
-                                    items_list.remove(items_list[i])})
+                            Row(modifier = Modifier.padding(20.dp)) {
+                                Text("sheet item $i:${items_list[i]}")
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Filled.Edit,
+                                    contentDescription = "Edit",
+                                    Modifier.clickable {
+                                        val splitValues = items_list[i].split(" ")
+                                        val yearTime = splitValues[0]
+                                        val monthTime = splitValues[1]
+                                        startActivity(createIntentSecondActivity(yearTime,monthTime))
+                                    })
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = "Delete",
+                                    Modifier.clickable {
+                                        items_list.remove(items_list[i])
+                                    })
 
                             }
                         }
                     }
                 }
             }
-         }
+        }
 
-      }
+    }
 
 
     var showSheetAddWindow = mutableStateOf(false)
     var started = mutableStateOf(0)
 
-    private fun createIntentSecondActivity(): Intent {
-        var intent  = Intent( this,SecondActivity::class.java)
-        intent. putExtra( "transferYearToSecond","${user_input_year.value} " )
-        intent. putExtra( "transferMonthToSecond"," ${user_input_month.value}" )
+    private fun createIntentSecondActivity(yearTime:String,monthTime:String): Intent {
+        var intent = Intent(this, SecondActivity::class.java)
+        intent.putExtra("transferYearToSecond", "${yearTime }")
+        intent.putExtra("transferMonthToSecond", " ${monthTime}")
         started.value++
         return intent
     }
 
-
 }
-
-
-
 var items_list = mutableStateListOf<String>()
 var user_input_month = mutableStateOf(Calendar.getInstance().get(Calendar.MONTH)+1)
 var user_input_year = mutableStateOf(Calendar.getInstance().get(Calendar.YEAR))
@@ -99,7 +109,7 @@ fun SheetAddWindow(onDismiss:() -> Unit) {
         OutlinedTextField(value=user_input_month.value.toString(), onValueChange = { user_input_month.value = it.toInt() },label={Text("Enter month from 1-12")})
 
 
-        TextField(value=user_input_year.value.toString(), onValueChange = { user_input_year.value = it.toInt() },label={Text("Enter year ")})
+        OutlinedTextField(value=user_input_year.value.toString(), onValueChange = { user_input_year.value = it.toInt() },label={Text("Enter year ")})
 
         Button(onClick = {
             items_list.add("${user_input_year.value} ${user_input_month.value}")
