@@ -40,7 +40,7 @@ class SecondActivity : ComponentActivity() {
         setContent {
             Column {
                 Text("This is the second activity")
-                //show expense list with corresponding year and month
+                //show expense_total list with corresponding year and month
                 yearTime.value = intent.getStringExtra("transferYearToSecond").toString()
                 monthTime.value=intent.getStringExtra("transferMonthToSecond").toString()
                 Text(text="Year: ${yearTime.value}   Month:${monthTime.value}",fontSize=20.sp)
@@ -61,13 +61,15 @@ class SecondActivity : ComponentActivity() {
                     }
                     entered_income.value=it
 
-                    balance.value = income.value - expense.value},
+                    balance.value = income.value - expense_total.value},
 
-                    label = { Text("enter income")} )
+
+                    label = { Text("enter income")} ,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done))
 
                 Spacer(modifier = Modifier.width(50.dp))
 
-                BasicTextCard(title = "Expense", subtext ="€ ${expense.value}" )
+                BasicTextCard(title = "Total Expense", subtext ="€ ${expense_total.value}" )
 
 
 
@@ -82,7 +84,7 @@ class SecondActivity : ComponentActivity() {
                     Text("+Add Expense Item")
                 }
 
-                //use column composable to show the expense item adding window
+                //use column composable to show the expense_total item adding window
                 if (showExpenseAddWindow.value) {
                     Column(
                         modifier = Modifier.padding(30.dp)
@@ -105,12 +107,12 @@ class SecondActivity : ComponentActivity() {
                                     if (user_input_description.value.isNotBlank()&& user_input_amount.value.toDouble()!=null) {
 
                                         item_list.add(Pair(user_input_description.value, user_input_amount.value.toDouble()))
-                                        expense.value += user_input_amount.value.toDouble()
-                                        balance.value = income.value - expense.value
+                                        expense_total.value += user_input_amount.value.toDouble()
+                                        balance.value = income.value - expense_total.value
 
                                     }
 
-                               //for close the adding window and also folding the keyboard
+                               //for close the adding window
                                 showExpenseAddWindow.value = false
                             }
 
@@ -123,7 +125,7 @@ class SecondActivity : ComponentActivity() {
 
                Spacer(modifier= Modifier.width(16.dp))
 
-                //lazylist for displaying the expense item
+                //lazylist for displaying the expense_total item
                 VerticalList(item_list)
             }
         }
@@ -157,7 +159,7 @@ class SecondActivity : ComponentActivity() {
 
 var item_list = mutableStateListOf<Pair<String,Double>>()
 var income = mutableStateOf(0.0)
-var expense = mutableStateOf(0.0)
+var expense_total = mutableStateOf(0.0)
 var balance = mutableStateOf(0.0)
 var user_input_description = mutableStateOf("")
 var user_input_amount = mutableStateOf("")
@@ -186,7 +188,12 @@ fun VerticalList(item_list: MutableList<Pair<String, Double>>) {
                     headlineText = { Text("Expense description: ${item_list[i].first}") },
                     supportingText = { Text(text = "Expense amount:${item_list[i].second} ") },
                    trailingContent = { Icon(imageVector = Icons.Filled.Delete ,contentDescription="delete", modifier = Modifier.clickable {
-                            item_list.remove(item_list[i])
+                       expense_total.value-=item_list[i].second
+                       balance.value = income.value - expense_total.value
+
+                       item_list.remove(item_list[i])
+
+
                    })}
                 )
             }
