@@ -155,7 +155,7 @@ class SecondActivity : ComponentActivity() {
                                     expense_total.value-=item_list[i].second
                                     balance.value = income.value - expense_total.value
 
-//                                    deleteData(user_input_description.value,user_input_amount.value.toDouble())
+                                    deleteData(user_input_description.value.trim(),user_input_amount.value.trim().toDouble())
 
                                     item_list.remove(item_list[i])
 
@@ -190,8 +190,8 @@ class SecondActivity : ComponentActivity() {
 
 
     private fun deleteData(expenseDescription: String, amount: Double) {
-        val whereClause = "Description = ? AND Expense = ?"
-        val whereArgs = arrayOf(expenseDescription, amount.toString())
+        val whereClause = "Year = ? AND Month = ? AND Description = ? AND Expense = ? "
+        val whereArgs = arrayOf(year_Time.value.trim(),month_Time.value.trim(),expenseDescription, amount.toString())
 
         sdb.delete("expenseDetail", whereClause, whereArgs)
     }
