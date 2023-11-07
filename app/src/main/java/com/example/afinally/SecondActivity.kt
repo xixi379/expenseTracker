@@ -123,8 +123,8 @@ class SecondActivity : ComponentActivity() {
 
                                     if (user_input_description.value.isNotBlank()) {
 
-//                                        addData(user_input_description.value,user_input_amount.value.toDouble())
-                                        item_list.add(Pair(user_input_description.value, user_input_amount.value.toDouble()))
+                                        addData(user_input_description.value.trim(),user_input_amount.value.trim().toDouble())
+                                        item_list.add(Pair(user_input_description.value.trim(), user_input_amount.value.trim().toDouble()))
                                         expense_total.value += user_input_amount.value.toDouble()
                                         balance.value = income.value - expense_total.value
 
@@ -177,14 +177,14 @@ class SecondActivity : ComponentActivity() {
     var showExpenseAddWindow = mutableStateOf(false)
 
    private fun addData(expenseDescription: String, amount: Double) {
-        val row1: ContentValues = ContentValues().apply {
-            put("Year", year_Time.value.toInt())
-            put("Month", month_Time.value.toInt())
+        val row: ContentValues = ContentValues().apply {
+            put("Year", year_Time.value.trim().toInt())
+            put("Month", month_Time.value.trim().toInt())
             put("Description", expenseDescription)
             put("Expense", amount)
         }
 
-       sdb.insert("expenseDetail", null, row1)
+       sdb.insert("expenseDetail", null, row)
 
     }
 
