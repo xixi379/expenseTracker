@@ -22,7 +22,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -142,7 +141,8 @@ class SecondActivity : ComponentActivity() {
                                         item_list.clear()
                                         user_input_description.value=""
                                         user_input_amount.value=""
-                                        
+                                        user_input_day.value=Calendar.getInstance().get(Calendar.DAY_OF_MONTH).toString()
+
                                     }
 
                                //for close the adding window
@@ -157,21 +157,6 @@ class SecondActivity : ComponentActivity() {
                 }
 
                Spacer(modifier= Modifier.width(16.dp))
-
-                //lazylist for displaying the expense item
-                LazyColumn {
-                    for (i in 0 until item_list.size) {
-                        item {
-                            ListItem(
-                                headlineText = { Text("$year_Time/$month_Time/$user_input_day") },
-                                supportingText = { Text(text = " Expense description: ${item_list[i].first}") },
-                                trailingContent = { Text(text="Expense amount:${item_list[i].second}")}
-                            )
-                        }
-                    }
-                }
-
-                Divider()
 
                 Button(onClick = {current_data.value = retrieveData()}){
                 Text("retrieve current expense item :")
@@ -213,13 +198,6 @@ class SecondActivity : ComponentActivity() {
 
                     }
                 }
-
-
-
-
-
-
-
             }
         }
 
