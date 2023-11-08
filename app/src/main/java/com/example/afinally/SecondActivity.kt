@@ -1,14 +1,15 @@
 package com.example.afinally
 
 import android.content.ContentValues
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
@@ -32,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.sql.SQLException
 
 
 class SecondActivity : ComponentActivity() {
@@ -43,14 +44,6 @@ class SecondActivity : ComponentActivity() {
         tdb = TestDBOpenHelper(this, "test", null, 1)
         sdb = tdb.writableDatabase
 
-
-
-//        if (sdb != null) {
-//            // Database opened successfully, you can now use it.
-//            Log.i("successful","--------------------------------------------------")
-//        } else {
-//            Log.i("fail","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-//        }
 
         super.onCreate(savedInstanceState)
 
@@ -90,6 +83,11 @@ class SecondActivity : ComponentActivity() {
 
 
 
+
+
+
+
+
                 Divider()
 
                 // composable function that shows a window when click a button
@@ -104,12 +102,13 @@ class SecondActivity : ComponentActivity() {
                 //use column composable to show the expense item adding window
                 if (showExpenseAddWindow.value) {
                     Column(
-                        modifier = Modifier.padding(30.dp)
+                        modifier = Modifier.padding(10.dp)
                     ) {
                         OutlinedTextField(
                             value = user_input_description.value,
                             onValueChange = { user_input_description.value = it },
-                            label = { Text("Enter expense description") }
+                            label = { Text("Enter expense description") } ,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                         )
                         OutlinedTextField(
                             value = user_input_amount.value,
@@ -165,6 +164,60 @@ class SecondActivity : ComponentActivity() {
                         }
                     }
                 }
+
+                Divider()
+
+                Button(onClick = {current_data.value = retrieveData()}){
+                Text("retrieve current expense item :")
+                }
+                if (current_data.value.isEmpty()) {
+                    Text(text = "No data")
+                } else {
+                    LazyColumn {
+
+                        val items = current_data.value.split("\n")
+                        items.forEach { item ->
+                            val parts = item.split(",")
+                            if (parts.size >= 4) {
+                                val year = parts[0]
+                                val month = parts[1]
+                                val description = parts[2]
+                                val expense = parts[3]
+
+                                item {
+                                    Row {
+                                        Text(text = "Year: $year ")
+                                        Text(text = "Month: $month ")
+                                        Text(text = "Description: $description ")
+                                        Text(text = "Expense: $expense")
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Delete",
+                                            modifier = Modifier.clickable {
+                                                deleteData(description.trim(),expense.trim().toDouble())
+                                                current_data.value = retrieveData()
+                                            }
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit",
+                                            modifier = Modifier.clickable {
+
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
+
+
             }
         }
 
@@ -175,6 +228,37 @@ class SecondActivity : ComponentActivity() {
     var month_Time: MutableState<String> = mutableStateOf("")
     var entered_income = mutableStateOf("")
     var showExpenseAddWindow = mutableStateOf(false)
+    var buttonClicked = mutableStateOf(false)
+
+    private fun retrieveData(): String {
+        sdb = tdb.readableDatabase
+        val table_name = "expenseDetail"
+        val columns: Array<String> = arrayOf("Year", "Month", "Description", "Expense")
+        val where: String? = "Year=? AND Month= ?"
+        val where_args: Array<String>? = arrayOf(year_Time.value.trim(),month_Time.value.trim())
+        val group_by: String? = null
+        val having: String? = null
+        val order_by: String? = null
+
+        var c: Cursor =
+            sdb.query(table_name, columns, where, where_args, group_by, having, order_by)
+
+        var sb: StringBuilder = StringBuilder()
+        c.moveToFirst()
+        for (i in 0 until c.count) {
+            sb.append(c.getInt(0).toString())
+            sb.append(",")
+            sb.append(c.getString(1).toString())
+            sb.append(",")
+            sb.append(c.getString(2).toString())
+            sb.append(",")
+            sb.append(c.getString(3).toString())
+            sb.append("\n")
+            c.moveToNext()
+        }
+
+        return sb.toString()
+    }
 
    private fun addData(expenseDescription: String, amount: Double) {
         val row: ContentValues = ContentValues().apply {
@@ -196,7 +280,7 @@ class SecondActivity : ComponentActivity() {
         sdb.delete("expenseDetail", whereClause, whereArgs)
     }
 
-
+    private var current_data = mutableStateOf("")
     private lateinit var tdb: TestDBOpenHelper
     private lateinit var sdb: SQLiteDatabase
 }

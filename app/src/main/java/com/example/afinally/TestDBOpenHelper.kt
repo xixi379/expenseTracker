@@ -17,7 +17,6 @@ class TestDBOpenHelper(context: Context, name:String, factory: SQLiteDatabase.Cu
     }
 
     private val CREATE_TABLE: String = "create table expenseDetail(" +
-//            "ID integer primary key autoincrement," +
             "Year integer," +
             "Month integer," +
             "Description string," +
