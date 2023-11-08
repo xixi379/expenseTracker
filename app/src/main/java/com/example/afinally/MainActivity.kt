@@ -1,6 +1,7 @@
 package com.example.afinally
 
 import android.content.Intent
+import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -33,6 +34,9 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        tdb = TestDBOpenHelper(this, "test", null, 1)
+        sdb = tdb.writableDatabase
+
         super.onCreate(savedInstanceState)
         setContent {
             Column {
@@ -93,7 +97,8 @@ class MainActivity : ComponentActivity() {
         started.value++
         return intent
     }
-
+    private lateinit var tdb: TestDBOpenHelper
+    private lateinit var sdb: SQLiteDatabase
 }
 var items_list = mutableStateListOf<String>()
 var user_input_month = mutableStateOf(Calendar.getInstance().get(Calendar.MONTH)+1)

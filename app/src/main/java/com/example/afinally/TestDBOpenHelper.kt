@@ -19,6 +19,7 @@ class TestDBOpenHelper(context: Context, name:String, factory: SQLiteDatabase.Cu
     private val CREATE_TABLE: String = "create table expenseDetail(" +
             "Year integer," +
             "Month integer," +
+            "Day integer," +
             "Description string," +
             "Expense double"+
             ")"
