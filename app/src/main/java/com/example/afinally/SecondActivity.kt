@@ -25,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
@@ -47,16 +46,14 @@ class SecondActivity : ComponentActivity() {
 
         setContent {
             Column {
-                Row{Text("This is the second activity")
+                Row{
+                    Text("This is the second activity")
                     Button(onClick = {finish()
-
                     }) {
                         Text("back to main page")
-
                     }
-
                 }
-                //show corresponding year and month on  each monthly expense & income page through intent
+                //show corresponding year and month on each monthly expense & income page through intent
                 year_Time.value = intent.getStringExtra("transferYearToSecond").toString()
                 month_Time.value=intent.getStringExtra("transferMonthToSecond").toString()
                 Text(text="Year: ${year_Time.value}   Month:${month_Time.value}",fontSize=20.sp)
@@ -79,9 +76,9 @@ class SecondActivity : ComponentActivity() {
 
                         val convertedValue = entered_income.value.toDoubleOrNull()
                         if (convertedValue != null) {
-                            income.value = convertedValue
+                            addIncome(convertedValue)
                         }
-                        addIncome(income.value)
+
                         balance.value = retrieveIncomeData() - expense_total.value
                         entered_income.value=""
                        }
@@ -145,10 +142,10 @@ class SecondActivity : ComponentActivity() {
 
                                         addData(user_input_description.value.trim(),user_input_amount.value.trim().toDouble(),
                                             user_input_day.value.trim().toInt())
-                                        item_list.add(Pair(user_input_description.value.trim(), user_input_amount.value.trim().toDouble()))
+//                                        item_list.add(Pair(user_input_description.value.trim(), user_input_amount.value.trim().toDouble()))
 
                                         current_data.value = retrieveData()
-                                        item_list.clear()
+//                                        item_list.clear()
                                         user_input_description.value=""
                                         user_input_amount.value=""
                                         user_input_day.value=Calendar.getInstance().get(Calendar.DAY_OF_MONTH).toString()
@@ -219,7 +216,6 @@ class SecondActivity : ComponentActivity() {
     var year_Time = mutableStateOf("")
     var month_Time = mutableStateOf("")
     var entered_income = mutableStateOf("")
-
     var showExpenseAddWindow = mutableStateOf(false)
 
 
@@ -342,8 +338,7 @@ class SecondActivity : ComponentActivity() {
     private lateinit var sdb: SQLiteDatabase
 }
 
-var item_list = mutableStateListOf<Pair<String,Double>>()
-var income = mutableStateOf(0.0)
+//var item_list = mutableStateListOf<Pair<String,Double>>()
 var expense_total = mutableStateOf(0.0)
 var balance = mutableStateOf(0.0)
 var user_input_description = mutableStateOf("")
