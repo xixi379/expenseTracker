@@ -19,7 +19,9 @@ class TestDBOpenHelper(context: Context, name:String, factory: SQLiteDatabase.Cu
         db?.execSQL(CREATE_TABLE_1)
     }
 
+    //add ID  in case of wrong removal of same time description amount expense Item
     private val CREATE_TABLE: String = "create table expenseDetail(" +
+            "ID integer PRIMARY KEY AUTOINCREMENT," +
             "Year integer," +
             "Month integer," +
             "Day integer," +

@@ -56,18 +56,18 @@ class SecondActivity : ComponentActivity() {
                     }
 
                 }
-                //show expense_total list with corresponding year and month
+                //show corresponding year and month on  each monthly expense & income page through intent
                 year_Time.value = intent.getStringExtra("transferYearToSecond").toString()
                 month_Time.value=intent.getStringExtra("transferMonthToSecond").toString()
                 Text(text="Year: ${year_Time.value}   Month:${month_Time.value}",fontSize=20.sp)
 
 
-
+                //show balance value on each monthly expense page, it >0 surplus, it<0, deficit
                 Text("Total Balance : € ${balance.value}",fontSize=30.sp)
 
                 Divider()
 
-
+                //enter income and click confirm button to add into table incomeDetail in database
                 Row{
                   OutlinedTextField(value = entered_income.value,
                     onValueChange = { entered_income.value=it },
@@ -91,23 +91,21 @@ class SecondActivity : ComponentActivity() {
                }
 
                 Spacer(modifier = Modifier.width(50.dp))
+
                 //get expense total amount from database
                 expense_total.value = getTotalExpense(year_Time.value.trim().toInt(),month_Time.value.trim().toInt())
                 balance.value = retrieveIncomeData() - expense_total.value
+
+                //use row layout to display monthly income and expense total figure
                 Row{
                 BasicTextCard(title = "Total Income", subtext ="€ ${retrieveIncomeData()}" )
                 BasicTextCard(title = "Total Expense", subtext ="€ ${expense_total.value}" )
 
                 }
 
-
-
-
-
-
                 Divider()
 
-                // composable function that shows a window when click a button
+                // composable function that trigger expense item adding activity when click a button
                 Button(
                     onClick = {
                         showExpenseAddWindow.value = true
@@ -170,6 +168,8 @@ class SecondActivity : ComponentActivity() {
 
                Spacer(modifier= Modifier.width(16.dp))
 
+                //used to retrieve expense items for each year month from the database
+                //can be deleted from the database as well
                 Button(onClick = {current_data.value = retrieveData()}){
                 Text("retrieve current expense item :")
                 }
@@ -181,25 +181,25 @@ class SecondActivity : ComponentActivity() {
                         val items = current_data.value.split("\n")
                         items.forEach { item ->
                             val parts = item.split(",")
-                            if (parts.size >= 5) {
-                                val year = parts[0]
-                                val month = parts[1]
-                                val day = parts[2]
-                                val description = parts[3]
-                                val expense = parts[4]
+                            if (parts.size >= 6) {
+                                val ID = parts[0]
+                                val year = parts[1]
+                                val month = parts[2]
+                                val day = parts[3]
+                                val description = parts[4]
+                                val expense = parts[5]
 
                                 item {
                                     Row {
-                                        Text(text = "Year: $year ")
-                                        Text(text = "Month: $month ")
-                                        Text(text = "Day: $day ")
+                                        Text(text = "ID: $ID ")
+                                        Text(text = " $year-$month-$day")
                                         Text(text = "Description: $description ")
-                                        Text(text = "Expense: $expense")
+                                        Text(text = "Expense:€$expense")
                                         Icon(
                                             imageVector = Icons.Default.Delete,
                                             contentDescription = "Delete",
                                             modifier = Modifier.clickable {
-                                                deleteData(day.trim().toInt(),description.trim(),expense.trim().toDouble())
+                                                deleteData(ID.trim().toInt(),day.trim().toInt(),description.trim(),expense.trim().toDouble())
                                                 current_data.value = retrieveData()
                                             }
                                         )
@@ -223,6 +223,7 @@ class SecondActivity : ComponentActivity() {
     var showExpenseAddWindow = mutableStateOf(false)
 
 
+    //retrieve the total expense amount from database table "expenseDetail"
     fun getTotalExpense(year:Int,month:Int): Double {
         val query = "SELECT SUM(Expense) FROM expenseDetail where Year = $year AND Month = $month"
         val cursor = sdb.rawQuery(query, null)
@@ -237,10 +238,11 @@ class SecondActivity : ComponentActivity() {
         return totalExpense
     }
 
-    private fun retrieveData(): String {
+    //retrieve all the relevant expense items for specific year and month
+     fun retrieveData(): String {
         sdb = tdb.readableDatabase
         val table_name = "expenseDetail"
-        val columns: Array<String> = arrayOf("Year", "Month","Day","Description","Expense")
+        val columns: Array<String> = arrayOf("ID","Year", "Month","Day","Description","Expense")
         val where = "Year=? AND Month= ?"
         val where_args: Array<String> = arrayOf(year_Time.value.trim(),month_Time.value.trim())
         val group_by: String? = null
@@ -262,6 +264,8 @@ class SecondActivity : ComponentActivity() {
             sb.append(c.getString(3).toString())
             sb.append(",")
             sb.append(c.getString(4).toString())
+            sb.append(",")
+            sb.append(c.getString(5).toString())
             sb.append("\n")
             c.moveToNext()
         }
@@ -269,6 +273,7 @@ class SecondActivity : ComponentActivity() {
         return sb.toString()
     }
 
+    //use the latest added income data as the income of each month year from the table "incomeDetail"
     private fun retrieveIncomeData(): Double {
         sdb = tdb.readableDatabase
         val table_name = "incomeDetail"
@@ -277,6 +282,7 @@ class SecondActivity : ComponentActivity() {
         val where_args: Array<String> = arrayOf(year_Time.value.trim(),month_Time.value.trim())
         val group_by: String? = null
         val having: String? = null
+        //make sure the most recently added income data will be retrieved as the total income
         val order_by: String? = "ID DESC"
 
         var c: Cursor =
@@ -285,17 +291,15 @@ class SecondActivity : ComponentActivity() {
         var incomedata=0.0
         if(c.moveToFirst())
         {
-
            incomedata= c.getString(3).toDouble()
-
-
-
+            //there is a hint to close cursor
             c.close()
         }
         return incomedata
 
     }
 
+    //for adding new expense items to expenseDetail table in database
    private fun addData(expenseDescription: String, amount: Double,day:Int) {
         val row: ContentValues = ContentValues().apply {
             put("Year", year_Time.value.trim().toInt())
@@ -310,6 +314,7 @@ class SecondActivity : ComponentActivity() {
 
     }
 
+    //add income data to incomeDetail table
     private fun addIncome(income:Double) {
         val row: ContentValues = ContentValues().apply {
             put("Year", year_Time.value.trim().toInt())
@@ -322,9 +327,10 @@ class SecondActivity : ComponentActivity() {
 
     }
 
-    private fun deleteData(day:Int,expenseDescription: String, amount: Double) {
-        val whereClause = "Year = ? AND Month = ? AND Day=? AND Description = ? AND Expense = ? "
-        val whereArgs = arrayOf(year_Time.value.trim(),month_Time.value.trim(),day.toString(),expenseDescription, amount.toString())
+    //delete expense item data from expenseDetails
+    private fun deleteData(ID:Int,day:Int,expenseDescription: String, amount: Double) {
+        val whereClause = "ID = ? AND Year = ? AND Month = ? AND Day=? AND Description = ? AND Expense = ? "
+        val whereArgs = arrayOf(ID.toString(),year_Time.value.trim(),month_Time.value.trim(),day.toString(),expenseDescription, amount.toString())
 
         sdb.delete("expenseDetail", whereClause, whereArgs)
         expense_total.value-=amount

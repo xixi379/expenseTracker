@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        //connect to database first
         tdb = TestDBOpenHelper(this, "test", null, 1)
         sdb = tdb.writableDatabase
 
@@ -55,6 +56,9 @@ class MainActivity : ComponentActivity() {
 
                 Spacer(modifier = Modifier.width(16.dp))
 
+                //display a lazylist for sheet of different year month,delete function and edit function
+                //this delete function only recompose items_list and has nothing to do with database sheet data
+                //this edit function can lead to different expense page according to respective year and month
                 LazyColumn {
                     for (i in 0 until items_list.size) {
                         item {
@@ -84,11 +88,12 @@ class MainActivity : ComponentActivity() {
                 }
 
 
-
-
-
                 Spacer(modifier= Modifier.width(16.dp))
 
+
+                //retrieve the sheet from database ,which has at least one expense items for that month year,edit function & delete function
+                //edit function will lead to explicit expense items  and income of that year month
+                //delete function can delete all the expense items of regarding year month from the database
                 Button(onClick = {current_sheet.value = retrieveSheet()}){
                     Text("retrieve current sheet item :")
                 }
@@ -96,21 +101,31 @@ class MainActivity : ComponentActivity() {
                     Text(text = "")
                 } else {
                     LazyColumn {
-
                         val items = current_sheet.value.split("\n")
                         items.forEach { item ->
                             val parts = item.split(",")
                             if (parts.size >= 2) {
                                 val year = parts[0]
                                 val month = parts[1]
-
-
                                 item {
                                     Row {
                                         Text(text = "Year: $year ")
                                         Text(text = "Month: $month ")
-
+                                        Icon(imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit",
+                                            modifier = Modifier.clickable {
+                                                startActivity(createIntentSecondActivity(year,month))
+                                            }
+                                        )
+                                        Icon(imageVector = Icons.Default.Delete,
+                                            contentDescription = "Delete",
+                                            modifier = Modifier.clickable {
+                                               deleteSheet(year,month)
+                                                current_sheet.value = retrieveSheet()
+                                            }
+                                        )
                                     }
+
                                 }
                             }
                         }
@@ -119,26 +134,13 @@ class MainActivity : ComponentActivity() {
                 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
             }
         }
 
     }
 
 
-
+     //create an intent to provide year and time value for each sheet corresponding expense item page
     private fun createIntentSecondActivity(yearTime:String,monthTime:String): Intent {
         var intent = Intent(this, SecondActivity::class.java)
         intent.putExtra("transferYearToSecond", "${yearTime }")
@@ -154,6 +156,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var tdb: TestDBOpenHelper
     private lateinit var sdb: SQLiteDatabase
 
+
+//    retreive the sheet from database ,which has at least one expense items for that month year
     private fun retrieveSheet(): String {
         sdb = tdb.readableDatabase
         val table_name = "expenseDetail"
@@ -176,6 +180,15 @@ class MainActivity : ComponentActivity() {
         }
         c.close()
         return sb.toString()
+    }
+
+    //delete all the year month related expense item from expenseDetail table
+    private fun deleteSheet(year:String,month:String) {
+        val whereClause = "Year = ? AND Month = ? "
+        val whereArgs = arrayOf(year,month)
+
+        sdb.delete("expenseDetail", whereClause, whereArgs)
+
     }
 }
 
