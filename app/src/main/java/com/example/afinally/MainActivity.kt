@@ -1,6 +1,7 @@
 package com.example.afinally
 
 import android.content.Intent
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
@@ -81,14 +82,62 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+
+
+
+
+
+                Spacer(modifier= Modifier.width(16.dp))
+
+                Button(onClick = {current_sheet.value = retrieveSheet()}){
+                    Text("retrieve current sheet item :")
+                }
+                if (current_sheet.value.isEmpty()) {
+                    Text(text = "")
+                } else {
+                    LazyColumn {
+
+                        val items = current_sheet.value.split("\n")
+                        items.forEach { item ->
+                            val parts = item.split(",")
+                            if (parts.size >= 2) {
+                                val year = parts[0]
+                                val month = parts[1]
+
+
+                                item {
+                                    Row {
+                                        Text(text = "Year: $year ")
+                                        Text(text = "Month: $month ")
+
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             }
         }
 
     }
 
 
-    var showSheetAddWindow = mutableStateOf(false)
-    var started = mutableStateOf(0)
 
     private fun createIntentSecondActivity(yearTime:String,monthTime:String): Intent {
         var intent = Intent(this, SecondActivity::class.java)
@@ -97,12 +146,48 @@ class MainActivity : ComponentActivity() {
         started.value++
         return intent
     }
+
+    var showSheetAddWindow = mutableStateOf(false)
+    var started = mutableStateOf(0)
+    var current_sheet = mutableStateOf("")
+
     private lateinit var tdb: TestDBOpenHelper
     private lateinit var sdb: SQLiteDatabase
+
+    private fun retrieveSheet(): String {
+        sdb = tdb.readableDatabase
+        val table_name = "expenseDetail"
+        val columns: Array<String> = arrayOf("Year", "Month")
+        val group_by: String? = "Year,Month"
+        val having: String? = null
+        val order_by: String? = null
+
+        var c: Cursor =
+            sdb.query(table_name, columns, null, null, group_by, having, order_by)
+
+        val sb: StringBuilder = StringBuilder()
+        c.moveToFirst()
+        for (i in 0 until c.count) {
+            sb.append(c.getInt(0).toString())
+            sb.append(",")
+            sb.append(c.getString(1).toString())
+            sb.append("\n")
+            c.moveToNext()
+        }
+        c.close()
+        return sb.toString()
+    }
 }
+
+
+
 var items_list = mutableStateListOf<String>()
 var user_input_month = mutableStateOf(Calendar.getInstance().get(Calendar.MONTH)+1)
 var user_input_year = mutableStateOf(Calendar.getInstance().get(Calendar.YEAR))
+
+
+
+
 
 
 @ExperimentalMaterial3Api

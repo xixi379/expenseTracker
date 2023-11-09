@@ -47,46 +47,58 @@ class SecondActivity : ComponentActivity() {
 
         setContent {
             Column {
-                Text("This is the second activity")
+                Row{Text("This is the second activity")
+                    Button(onClick = {finish()
+
+                    }) {
+                        Text("back to main page")
+
+                    }
+
+                }
                 //show expense_total list with corresponding year and month
                 year_Time.value = intent.getStringExtra("transferYearToSecond").toString()
                 month_Time.value=intent.getStringExtra("transferMonthToSecond").toString()
                 Text(text="Year: ${year_Time.value}   Month:${month_Time.value}",fontSize=20.sp)
 
-                Button(onClick = {finish()
 
-                income.value = 0.0
-
-                }) {
-                    Text("back to main page")
-
-                }
 
                 Text("Total Balance : € ${balance.value}",fontSize=30.sp)
 
                 Divider()
 
-                OutlinedTextField(value = entered_income.value, onValueChange = {
-                    //entered :string
-                    val convertedValue = it.toDoubleOrNull()
-                    if(convertedValue!=null){
-                        income.value = convertedValue
-                    }
-                    entered_income.value=it
 
-                    balance.value = income.value - expense_total.value},
-
-
+                Row{
+                  OutlinedTextField(value = entered_income.value,
+                    onValueChange = { entered_income.value=it },
                     label = { Text("enter income")} ,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done))
 
-                Spacer(modifier = Modifier.width(50.dp))
-                expense_total.value = getTotalExpense(year_Time.value.trim().toInt(),month_Time.value.trim().toInt())
-                balance.value = income.value - expense_total.value
+                  Button(
+                    onClick = {
 
+                        val convertedValue = entered_income.value.toDoubleOrNull()
+                        if (convertedValue != null) {
+                            income.value = convertedValue
+                        }
+                        addIncome(income.value)
+                        balance.value = retrieveIncomeData() - expense_total.value
+                        entered_income.value=""
+                       }
+                  ) {
+                       Text("confirm")
+                  }
+               }
+
+                Spacer(modifier = Modifier.width(50.dp))
+                //get expense total amount from database
+                expense_total.value = getTotalExpense(year_Time.value.trim().toInt(),month_Time.value.trim().toInt())
+                balance.value = retrieveIncomeData() - expense_total.value
+                Row{
+                BasicTextCard(title = "Total Income", subtext ="€ ${retrieveIncomeData()}" )
                 BasicTextCard(title = "Total Expense", subtext ="€ ${expense_total.value}" )
 
-
+                }
 
 
 
@@ -210,6 +222,7 @@ class SecondActivity : ComponentActivity() {
 
     var showExpenseAddWindow = mutableStateOf(false)
 
+
     fun getTotalExpense(year:Int,month:Int): Double {
         val query = "SELECT SUM(Expense) FROM expenseDetail where Year = $year AND Month = $month"
         val cursor = sdb.rawQuery(query, null)
@@ -227,7 +240,7 @@ class SecondActivity : ComponentActivity() {
     private fun retrieveData(): String {
         sdb = tdb.readableDatabase
         val table_name = "expenseDetail"
-        val columns: Array<String> = arrayOf("Year", "Month","Day","Description", "Expense")
+        val columns: Array<String> = arrayOf("Year", "Month","Day","Description","Expense")
         val where = "Year=? AND Month= ?"
         val where_args: Array<String> = arrayOf(year_Time.value.trim(),month_Time.value.trim())
         val group_by: String? = null
@@ -240,7 +253,7 @@ class SecondActivity : ComponentActivity() {
         val sb: StringBuilder = StringBuilder()
         c.moveToFirst()
         for (i in 0 until c.count) {
-            sb.append(c.getInt(0).toString())
+            sb.append(c.getString(0).toString())
             sb.append(",")
             sb.append(c.getString(1).toString())
             sb.append(",")
@@ -254,6 +267,33 @@ class SecondActivity : ComponentActivity() {
         }
         c.close()
         return sb.toString()
+    }
+
+    private fun retrieveIncomeData(): Double {
+        sdb = tdb.readableDatabase
+        val table_name = "incomeDetail"
+        val columns: Array<String> = arrayOf("ID","Year", "Month", "Income")
+        val where = "Year=? AND Month= ?"
+        val where_args: Array<String> = arrayOf(year_Time.value.trim(),month_Time.value.trim())
+        val group_by: String? = null
+        val having: String? = null
+        val order_by: String? = "ID DESC"
+
+        var c: Cursor =
+            sdb.query(table_name, columns, where, where_args, group_by, having, order_by)
+
+        var incomedata=0.0
+        if(c.moveToFirst())
+        {
+
+           incomedata= c.getString(3).toDouble()
+
+
+
+            c.close()
+        }
+        return incomedata
+
     }
 
    private fun addData(expenseDescription: String, amount: Double,day:Int) {
@@ -270,6 +310,17 @@ class SecondActivity : ComponentActivity() {
 
     }
 
+    private fun addIncome(income:Double) {
+        val row: ContentValues = ContentValues().apply {
+            put("Year", year_Time.value.trim().toInt())
+            put("Month", month_Time.value.trim().toInt())
+            put("Income", income)
+        }
+
+        sdb.insert("incomeDetail", null, row)
+
+
+    }
 
     private fun deleteData(day:Int,expenseDescription: String, amount: Double) {
         val whereClause = "Year = ? AND Month = ? AND Day=? AND Description = ? AND Expense = ? "
